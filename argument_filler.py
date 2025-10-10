@@ -38,14 +38,15 @@ Arguments to Find:
 --- INSTRUCTIONS ---
 - Your output MUST be a single, valid JSON object mapping each argument_name to its extracted value.
 - **CRITICAL**: To set an argument's value from a previous step, look at the plan and use "$$PREV[index]". For example, if the value for 'objects' should be the output of the tool at index 1 ('works_list'), the value should be "$$PREV[1]".
-- Use the User Query to extract explicit values (e.g., "p0", "issue").
-- Format list/array values as a JSON array (e.g., ["p0"]).
+- Use the User Query to extract explicit values (e.g., a customer's name, a specific status, a ticket ID).
+- Format list/array values as a JSON array (e.g., ["value1", "value2"]).
 - If a value cannot be found in the query or from a previous step, use an empty string "".
 
-EXAMPLE OUTPUT:
+--- A GENERAL EXAMPLE ---
+For a hypothetical query like "Summarize tickets from our customer Contoso" and a plan where tool [0] is 'search_object_by_name', a correct output for filling the 'works_list' tool at index [1] would be:
 {{
-  "work_ids": "$$PREV[2]",
-  "sprint_id": "$$PREV[3]"
+  "ticket.rev_org": "$$PREV[0]",
+  "type": ["ticket"]
 }}
 """
 
