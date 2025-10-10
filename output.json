@@ -1,25 +1,26 @@
 [
     {
-        "tool_name": "who_am_i",
-        "arguments": []
+        "tool_name": "search_object_by_name",
+        "arguments": [
+            {
+                "argument_name": "query",
+                "argument_value": ""
+            }
+        ]
     },
     {
         "tool_name": "works_list",
         "arguments": [
             {
-                "argument_name": "owned_by",
-                "argument_value": ""
-            },
-            {
                 "argument_name": "type",
                 "argument_value": ""
             },
             {
-                "argument_name": "stage.name",
+                "argument_name": "ticket.severity",
                 "argument_value": ""
             },
             {
-                "argument_name": "applies_to_part",
+                "argument_name": "ticket.rev_org",
                 "argument_value": ""
             }
         ]
