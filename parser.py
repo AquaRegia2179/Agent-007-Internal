@@ -24,7 +24,7 @@ def format_tool_docs(api_list: list) -> str:
 def generate_tool_chain(query: str) -> str:
     model = ChatGoogleGenerativeAI(model='gemini-2.5-pro', temperature=0)
     formatted_tools = format_tool_docs(API_LIST)
-
+    # mipro, gepa -> prompt optimization
     prompt_template = """
     You are an expert AI agent. Your task is to identify the correct sequence of tools to call to answer the user's query.
     You must output a JSON array of objects. For each tool, you must provide the 'tool_name' and the 'argument_name'.
