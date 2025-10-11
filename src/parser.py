@@ -26,33 +26,15 @@ def generate_tool_chain(query: str) -> str:
     formatted_tools = format_tool_docs(API_LIST)
 
     prompt_template = """
-    You are an expert AI agent. Your task is to identify the correct sequence of tools to call to answer the user's query.
-    You must output a JSON array of objects. For each tool, you must provide the 'tool_name' and the 'argument_name'.
-    However, you MUST leave the 'argument_value' as an empty string ("").
-
-    Here is the required JSON schema for your output:
+    Generate a JSON tool-call plan for the user's query.
+    Output a JSON array where each object has a `tool_name` and `arguments`. For each argument, provide the `argument_name` but leave `argument_value` as an empty string ("").
+    Schema:
     ```json
-    [
-        {{
-            "tool_name": "name_of_the_tool",
-            "arguments": [
-                {{
-                    "argument_name": "name_of_the_argument",
-                    "argument_value": ""
-                }}
-            ]
-        }}
-    ]
+    [{{"tool_name":"name_of_the_tool","arguments":[{{"argument_name":"name_of_the_argument","argument_value":""}}]}}]
     ```
-
-    Here is the list of available tools you can use:
-    --- START OF TOOLS ---
-    {tools}
-    --- END OF TOOLS ---
-
+    Tool List: {tools}
     User Query: "{user_query}"
-
-    Now, generate the JSON tool chain based on the user query. Your output should only be the JSON array, with no other text or formatting.
+    Your output should only be the JSON array, with no other text or formatting.
     """
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
