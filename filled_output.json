@@ -1,52 +1,40 @@
 [
     {
-        "tool_name": "who_am_i",
-        "arguments": []
+        "tool_name": "search_object_by_name",
+        "arguments": [
+            {
+                "argument_name": "query",
+                "argument_value": "UltimateCustomer"
+            }
+        ]
     },
     {
         "tool_name": "works_list",
         "arguments": [
             {
-                "argument_name": "owned_by",
-                "argument_value": "$$PREV[0]"
-            },
-            {
-                "argument_name": "issue.priority",
-                "argument_value": [
-                    "p0"
-                ]
-            },
-            {
                 "argument_name": "type",
                 "argument_value": [
-                    "issue"
+                    "ticket"
                 ]
+            },
+            {
+                "argument_name": "ticket.severity",
+                "argument_value": [
+                    "high"
+                ]
+            },
+            {
+                "argument_name": "ticket.rev_org",
+                "argument_value": "$$PREV[0]"
             }
         ]
     },
     {
-        "tool_name": "prioritize_objects",
+        "tool_name": "summarize_objects",
         "arguments": [
             {
                 "argument_name": "objects",
                 "argument_value": "$$PREV[1]"
-            }
-        ]
-    },
-    {
-        "tool_name": "get_sprint_id",
-        "arguments": []
-    },
-    {
-        "tool_name": "add_work_items_to_sprint",
-        "arguments": [
-            {
-                "argument_name": "work_ids",
-                "argument_value": "$$PREV[2]"
-            },
-            {
-                "argument_name": "sprint_id",
-                "argument_value": "$$PREV[3]"
             }
         ]
     }

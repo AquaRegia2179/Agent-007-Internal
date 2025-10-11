@@ -1,6 +1,6 @@
 import json
 import time
-from langchain_google_genai import ChatGoogleGenerativeAI
+import loadModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
@@ -11,11 +11,7 @@ from tools import API_LIST
 load_dotenv()
 
 # --- LLM and Chain Setup ---
-model = ChatGoogleGenerativeAI(
-    model="gemini-2.5-pro",
-    temperature=0,
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-)
+model = loadModel()
 
 contextual_extraction_template = """
 You are a master AI assistant that analyzes a user query and a multi-step tool plan to determine the correct arguments for each tool.
