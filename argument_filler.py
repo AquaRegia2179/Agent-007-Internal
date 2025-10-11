@@ -151,6 +151,15 @@ def fill_arguments_with_context(plan: list, user_query: str) -> list:
     filled_plan = plan.copy()
     query_lower = user_query.lower()
     
+    # Statistics tracking
+    stats = {
+        'total_tools': len(filled_plan),
+        'llm_calls': 0,
+        'rule_extractions': 0,
+        'skipped': 0,
+        'errors': 0
+    }
+    
     print(f"\n[DEBUG] Processing query: '{user_query}'")
     print(f"[DEBUG] Plan has {len(filled_plan)} tools")
     
@@ -164,11 +173,13 @@ def fill_arguments_with_context(plan: list, user_query: str) -> list:
         skip, reason = should_skip_llm(tool_name, arguments, i)
         if skip:
             print(f"    [SKIP] Skipping: {reason}")
+            stats['skipped'] += 1
             continue
 
         tool_details = get_tool_details(tool_name)
         if not tool_details:
             print(f"    [ERROR] No tool details found for: {tool_name}")
+            stats['errors'] += 1
             continue
 
         print(f"    [OK] Tool details found: {tool_details['name']}")
@@ -219,6 +230,7 @@ def fill_arguments_with_context(plan: list, user_query: str) -> list:
         # If rules extracted values, use them
         if extracted:
             print(f"    [RULE] Rule-based extraction successful: {extracted}")
+            stats['rule_extractions'] += 1
             for argument in arguments:
                 arg_name = argument['argument_name']
                 if arg_name in extracted:
@@ -228,6 +240,7 @@ def fill_arguments_with_context(plan: list, user_query: str) -> list:
 
         # Fall back to LLM
         print(f"    [LLM] Using LLM extraction for {tool_name}")
+        stats['llm_calls'] += 1
         args_to_find_str = ""
         for arg in tool_details.get('arguments', []):
             args_to_find_str += f"- {arg['argument_name']}: {arg['argument_description']}\n"
@@ -256,7 +269,27 @@ def fill_arguments_with_context(plan: list, user_query: str) -> list:
         except json.JSONDecodeError as e:
             print(f"    [ERROR] JSON decode error: {e}")
             print(f"    [RAW] Raw response: {response_str}")
+            stats['errors'] += 1
 
+    # Print statistics
+    print(f"\n[STATISTICS] Processing Summary:")
+    print(f"    Total tools: {stats['total_tools']}")
+    print(f"    LLM calls: {stats['llm_calls']}")
+    print(f"    Rule-based extractions: {stats['rule_extractions']}")
+    print(f"    Skipped tools: {stats['skipped']}")
+    print(f"    Errors: {stats['errors']}")
+    
+    # Calculate percentages
+    if stats['total_tools'] > 0:
+        llm_percentage = (stats['llm_calls'] / stats['total_tools']) * 100
+        rule_percentage = (stats['rule_extractions'] / stats['total_tools']) * 100
+        skip_percentage = (stats['skipped'] / stats['total_tools']) * 100
+        
+        print(f"\n[PERCENTAGES]")
+        print(f"    LLM usage: {llm_percentage:.1f}%")
+        print(f"    Rule usage: {rule_percentage:.1f}%")
+        print(f"    Skip rate: {skip_percentage:.1f}%")
+    
     print(f"\n[SUMMARY] Processed {len(filled_plan)} tools")
     print(f"[SUMMARY] All arguments filled successfully")
     
