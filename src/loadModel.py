@@ -8,16 +8,13 @@ def _get_model_name(default: str) -> str:
     return os.getenv("MODEL", default).strip().lower()
 
 def loadSmallModel():
-    """
-    Load a small/lightweight model. Respects the MODEL env var;
-    falls back to the module-level `small_model`.
-    """
+    
     model_name = _get_model_name(small_model)
 
     if model_name == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
         return ChatGoogleGenerativeAI(
-            model='gemini-2.5-pro',
+            model='gemini-2.5-flash',
             temperature=0,
             google_api_key=os.getenv("GOOGLE_API_KEY")
         )
@@ -38,9 +35,7 @@ def loadSmallModel():
         raise ValueError(f"Unsupported MODEL='{model_name}'. Set MODEL env var to one of: gemini, mistral, llama8b")
 
 def loadHeavyModel():
-    """
-    Backwards-compatible heavy loader. Uses MODEL env var or falls back to `large_model`.
-    """
+
     model_name = _get_model_name(large_model)
 
     if model_name == "gemini":
@@ -65,4 +60,3 @@ def loadHeavyModel():
         )
     else:
         raise ValueError(f"Unsupported MODEL='{model_name}'. Set MODEL env var to one of: gemini, mistral, llama8b")
-# ...existing code...

@@ -1,0 +1,1 @@
+{"eda5aecbc1e06847816d459fce5efc66a781aaac": "```json\n{\n  \"objects\": \"$$PREV[0]\"\n}\n```", "c9581e0f23a232ebde96429cb0641488bef64846": "```json\n{\n  \"ticket.severity\": [\n    \"High\"\n  ],\n  \"ticket.rev_org\": [\n    \"$$PREV[0]\"\n  ],\n  \"type\": [\n    \"ticket\"\n  ]\n}\n```"}
