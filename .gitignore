@@ -1,3 +1,5 @@
 __pycache__
 .env
+batch_run.py
+merged_dataset.jsonl
 env
