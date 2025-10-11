@@ -1,6 +1,6 @@
 import os
-small_model = "gpt-oss-20b"
-large_model = "gpt-oss-20b"
+small_model = "gpt-oss-120b"
+large_model = "llama70b"
 
 def loadSmallModel():
     if small_model == "gemini":
@@ -12,9 +12,12 @@ def loadSmallModel():
     elif small_model == "llama8b":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="llama-3.1-8b-instant", groq_api_key=os.getenv("GROQ_API_KEY"))
-    elif small_model == "gpt-oss-20b":
+    elif small_model == "llamaGuard":
         from langchain_groq import ChatGroq
-        return ChatGroq( temperature=0, model_name="openai/gpt-oss-20b", groq_api_key=os.getenv("GROQ_API_KEY"))
+        return ChatGroq( temperature=0, model_name="meta-llama/llama-guard-4-12b", groq_api_key=os.getenv("GROQ_API_KEY"))
+    elif small_model == "gpt-oss-120b":
+        from langchain_groq import ChatGroq
+        return ChatGroq( temperature=0, model_name="openai/gpt-oss-120b", groq_api_key=os.getenv("GROQ_API_KEY"))
 
 def loadHeavyModel():
     if large_model == "gemini":
@@ -26,6 +29,10 @@ def loadHeavyModel():
     elif large_model == "llama8b":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="llama-3.1-8b-instant", groq_api_key=os.getenv("GROQ_API_KEY"))
-    elif large_model == "gpt-oss-20b":
+    elif large_model == "llama70b":
         from langchain_groq import ChatGroq
-        return ChatGroq( temperature=0, model_name="openai/gpt-oss-20b", groq_api_key=os.getenv("GROQ_API_KEY"))
+        return ChatGroq( temperature=0, model_name="llama-3.3-70b-versatile", groq_api_key=os.getenv("GROQ_API_KEY"))
+    elif large_model == "gpt-oss20b":
+        from langchain_groq import ChatGroq
+        return ChatGroq( temperature=0, model_name="gpt-oss-20b", groq_api_key=os.getenv("GROQ_API_KEY"))
+    
