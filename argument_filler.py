@@ -1,6 +1,6 @@
 import json
 import time
-from loadModel import loadModel
+from loadModel import loadSmallModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ from tools import API_LIST
 load_dotenv()
 
 # --- LLM and Chain Setup ---
-model = loadModel()
+model = loadSmallModel()
 
 contextual_extraction_template = """
 You are a master AI assistant that analyzes a user query and a multi-step tool plan to determine the correct arguments for each tool.

@@ -1,4 +1,4 @@
-from loadModel import loadModel
+from loadModel import loadHeavyModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
@@ -22,7 +22,7 @@ def format_tool_docs(api_list: list) -> str:
     return doc_string
 
 def generate_tool_chain(query: str) -> str:
-    model = loadModel()
+    model = loadHeavyModel()
     formatted_tools = format_tool_docs(API_LIST)
 
     prompt_template = """
