@@ -1,0 +1,36 @@
+[
+    {
+        "tool_name": "who_am_i",
+        "arguments": []
+    },
+    {
+        "tool_name": "works_list",
+        "arguments": [
+            {
+                "argument_name": "owned_by",
+                "argument_value": ""
+            },
+            {
+                "argument_name": "type",
+                "argument_value": ""
+            },
+            {
+                "argument_name": "stage.name",
+                "argument_value": ""
+            },
+            {
+                "argument_name": "applies_to_part",
+                "argument_value": ""
+            }
+        ]
+    },
+    {
+        "tool_name": "summarize_objects",
+        "arguments": [
+            {
+                "argument_name": "objects",
+                "argument_value": ""
+            }
+        ]
+    }
+]
