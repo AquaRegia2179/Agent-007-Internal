@@ -31,7 +31,7 @@ def generate_tool_chain(query: str) -> str:
     Schema:
     ```json
     [{{"tool_name":"name_of_the_tool","arguments":[{{"argument_name":"name_of_the_argument","argument_value":""}}]}}]
-    ```
+    ``` 
     Tool List: {tools}
     User Query: "{user_query}"
     Your output should only be the JSON array, with no other text or formatting.
