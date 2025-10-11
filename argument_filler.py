@@ -1,138 +1,180 @@
+# argument_filler_optimized.py
+from __future__ import annotations
+
 import json
-import time
-from loadModel import loadSmallModel
+import os
+import hashlib
+from functools import lru_cache
+from typing import Dict, List
+
+from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from dotenv import load_dotenv
-import os
 
+from loadModel import loadSmallModel
 from usable_tool import API_LIST
 
 load_dotenv()
 
-# --- LLM and Chain Setup ---
-model = loadSmallModel()
+# ---------------------------
+# Model + chain (deterministic)
+# ---------------------------
+model = loadSmallModel()  # keep your lightweight model
 
-contextual_extraction_template = """
-You are a master AI assistant that analyzes a user query and a multi-step tool plan to determine the correct arguments for each tool.
+# Ultra-compact prompt
+_TEMPLATE = """
+Fill argument values for ONE tool in a multi-step plan.
 
---- CONTEXT ---
-User Query: "{user_query}"
+USER: "{user_query}"
 
---- THE FULL PLAN ---
-You are currently filling in the arguments for the tool at index {current_tool_index}.
-Here are all the steps in the plan:
-{full_plan_str}
+PLAN (index:name):
+{plan_brief}
 
---- YOUR TASK ---
-Your job is to determine the values for all arguments of the tool: "{tool_name}".
-Tool Description: "{tool_desc}"
+TARGET: step [{current_tool_index}] -> {tool_name}
 
-Arguments to Find:
-{arguments_to_find_str}
+ARGS (name:type):
+{args_brief}
 
---- INSTRUCTIONS ---
-- Your output MUST be a single, valid JSON object mapping each argument_name to its extracted value.
-- **CRITICAL**: To set an argument's value from a previous step, look at the plan and use "$$PREV[index]". For example, if the value for 'objects' should be the output of the tool at index 1 ('works_list'), the value should be "$$PREV[1]".
-- Use the User Query to extract explicit values (e.g., a customer's name, a specific status, a ticket ID).
-- Format list/array values as a JSON array (e.g., ["value1", "value2"]).
-- If a value cannot be found in the query or from a previous step, use an empty string "".
-
---- A GENERAL EXAMPLE ---
-For a hypothetical query like "Summarize tickets from our customer Contoso" and a plan where tool [0] is 'search_object_by_name', a correct output for filling the 'works_list' tool at index [1] would be:
-{{
-  "ticket.rev_org": "$$PREV[0]",
-  "type": ["ticket"]
-}}
+Rules:
+- Return ONLY a JSON object mapping argument_name -> value.
+- Use "$$PREV[k]" to reference the output of step k.
+- Lists must be JSON arrays. If unknown, use "" (or [] for arrays).
 """
 
-contextual_prompt = ChatPromptTemplate.from_template(contextual_extraction_template)
-parser = StrOutputParser()
-contextual_extraction_chain = contextual_prompt | model | parser
+_prompt = ChatPromptTemplate.from_template(_TEMPLATE)
+_parser = StrOutputParser()
+_chain = _prompt | model | _parser
 
-# --- Helper Function ---
-def get_tool_details(tool_name):
-    # Fix for who_am_i vs whoami inconsistency
+# ---------------------------
+# Helpers
+# ---------------------------
+def _clean_fenced_json(s: str) -> str:
+    s = s.strip()
+    if s.startswith("```json"):
+        s = s[len("```json"):].strip()
+    if s.endswith("```"):
+        s = s[:-3].strip()
+    return s
+
+def _norm(s: str) -> str:
+    return " ".join((s or "").split()).strip().lower()
+
+def _get_tool_details(tool_name: str) -> dict | None:
+    # handle alias only at lookup-time; do NOT mutate file contents
     if tool_name == "whoami":
         tool_name = "who_am_i"
-    for tool in API_LIST:
-        if tool['name'] == tool_name:
-            return tool
+    for t in API_LIST:
+        if t["name"] == tool_name:
+            return t
     return None
 
-# --- Core Logic ---
-def fill_arguments_with_context(plan: list, user_query: str) -> list:
-    filled_plan = plan.copy()
+# Small memo cache for identical fills (query+plan+tool+args)
+_CACHE: Dict[str, Dict] = {}
 
-    # Create a simple string representation of the full plan for context
-    full_plan_str = ""
-    for idx, step in enumerate(plan):
-        full_plan_str += f"[{idx}] {step['tool_name']}\n"
+@lru_cache(maxsize=512)
+def _invoke_cached(fp: str) -> str:
+    return _chain.invoke(_CACHE[fp])
+
+# ---------------------------
+# Core logic
+# ---------------------------
+def fill_arguments_with_context(plan: List[dict], user_query: str, verbose: bool = True) -> List[dict]:
+    # deep copy via JSON to avoid mutating caller data
+    filled_plan = json.loads(json.dumps(plan))
+
+    # minimal plan outline to save tokens
+    plan_brief = "\n".join(f"[{idx}] {step.get('tool_name','')}" for idx, step in enumerate(plan))
 
     for i, tool_call in enumerate(filled_plan):
-        tool_name = tool_call['tool_name']
-        
-        if not tool_call.get('arguments'):
-            print(f"Skipping '{tool_name}' as it has no arguments.")
+        tool_name = tool_call.get("tool_name", "")
+
+        # Skip tools without arguments
+        args = tool_call.get("arguments") or []
+        if not args:
+            if verbose:
+                print(f"Skipping '{tool_name}' as it has no arguments.")
             continue
 
-        tool_details = get_tool_details(tool_name)
+        # If everything is already filled (non-empty), skip LLM call
+        if all(a.get("argument_value") not in ("", []) for a in args):
+            if verbose:
+                print(f"Skipping '{tool_name}' — arguments already filled.")
+            continue
+
+        tool_details = _get_tool_details(tool_name)
         if not tool_details:
-            print(f"Warning: Could not find details for tool '{tool_name}'")
+            if verbose:
+                print(f"Warning: Could not find details for tool '{tool_name}'")
             continue
 
-        args_to_find_str = ""
-        for arg in tool_details.get('arguments', []):
-            args_to_find_str += f"- Name: {arg['argument_name']}, Description: {arg['argument_description']}\n"
-        
-        print(f"\nProcessing tool [{i}]: '{tool_name}'...")
-        
-        response_str = contextual_extraction_chain.invoke({
+        arg_specs = tool_details.get("arguments", [])
+        args_brief = ", ".join(f"{a['argument_name']}:{a['argument_type']}" for a in arg_specs)
+        arg_type_map = {a["argument_name"]: a.get("argument_type", "").lower() for a in arg_specs}
+
+        if verbose:
+            print(f"\nProcessing tool [{i}]: '{tool_name}'...")
+
+        payload = {
             "user_query": user_query,
             "current_tool_index": i,
-            "full_plan_str": full_plan_str,
+            "plan_brief": plan_brief,
             "tool_name": tool_name,
-            "tool_desc": tool_details['description'],
-            "arguments_to_find_str": args_to_find_str
-        })
-        
-        try:
-            extracted_values = json.loads(response_str.strip().strip("```json").strip())
-            
-            for argument in tool_call['arguments']:
-                arg_name = argument['argument_name']
-                if arg_name in extracted_values:
-                    # Special handling for array values that the LLM might return as a string
-                    value = extracted_values[arg_name]
-                    if "PREV" in str(value) and isinstance(value, list):
-                        argument['argument_value'] = value[0] # Take the string out of the list
-                    else:
-                        argument['argument_value'] = value
-                    print(f"  - Filled '{arg_name}': {argument['argument_value']}")
+            "args_brief": args_brief,
+        }
 
+        # Fingerprint for cache key (stable + short)
+        fp_src = json.dumps(
+            {"u": _norm(user_query), "i": i, "t": tool_name, "p": plan_brief, "a": args_brief},
+            ensure_ascii=False,
+        )
+        fp = hashlib.sha1(fp_src.encode("utf-8")).hexdigest()
+        _CACHE[fp] = payload
+
+        # Invoke LLM (cached)
+        raw = _invoke_cached(fp)
+
+        try:
+            resp = _clean_fenced_json(raw)
+            extracted = json.loads(resp)
         except json.JSONDecodeError:
-            print(f"  - Error: Failed to decode JSON for tool '{tool_name}'. Raw response: {response_str}")
-            
+            if verbose:
+                print(f"  - Error: Failed to decode JSON for tool '{tool_name}'. Raw: {raw}")
+            continue
+
+        # Assign values with type-aware array coercion
+        for a in tool_call["arguments"]:
+            aname = a["argument_name"]
+            if aname in extracted:
+                val = extracted[aname]
+                atype = arg_type_map.get(aname, "")
+                if "array" in atype and val != "" and not isinstance(val, list):
+                    val = [val]
+                a["argument_value"] = val
+                if verbose:
+                    print(f"  - Filled '{aname}': {a['argument_value']}")
+
     return filled_plan
 
-# --- Main Execution Block ---
+# ---------------------------
+# Main (example run)
+# ---------------------------
 if __name__ == "__main__":
-    user_query = "Summarize high severity tickets from the customer UltimateCustomer" # Example Query
+    user_query = "Summarize high severity tickets from the customer UltimateCustomer"
     print(f"Using Query: \"{user_query}\"")
-    
+
     try:
         print("Loading skeleton plan from 'output.json'...")
-        with open("output.json", "r") as f:
-            skeleton_plan_str = f.read().replace("who_am_i", "whoami")
+        with open("output.json", "r", encoding="utf-8") as f:
+            skeleton_plan_str = f.read()             # no risky replaces
             skeleton_plan = json.loads(skeleton_plan_str)
-        
-        filled_plan = fill_arguments_with_context(skeleton_plan, user_query)
-        
-        output_filename = "filled_output.json"
-        with open(output_filename, "w") as f:
-            json.dump(filled_plan, f, indent=4)
-        
-        print(f"\nSuccess! The corrected filled plan has been saved to '{output_filename}'")
+
+        filled_plan = fill_arguments_with_context(skeleton_plan, user_query, verbose=True)
+
+        out = "filled_output.json"
+        with open(out, "w", encoding="utf-8") as f:
+            json.dump(filled_plan, f, indent=4, ensure_ascii=False)
+
+        print(f"\nSuccess! The corrected filled plan has been saved to '{out}'")
 
     except FileNotFoundError:
         print("Error: 'output.json' not found.")
