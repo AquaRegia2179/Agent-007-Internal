@@ -4,6 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 import os
 import json
+import re
 
 from tool_list.usable_tool import API_LIST
 
@@ -25,34 +26,50 @@ def generate_tool_chain(query: str) -> str:
     model = loadHeavyModel()
     formatted_tools = format_tool_docs(API_LIST)
 
-    prompt_template = """
-    You are an expert AI agent. Your task is to identify the correct sequence of tools to call to answer the user's query.
-    You must output a JSON array of objects. For each tool, you must provide the 'tool_name' and the 'argument_name'.
-    However, you MUST leave the 'argument_value' as an empty string ("").
 
-    Here is the required JSON schema for your output:
-    ```json
+    prompt_template = """
+    You are a specialized AI that converts user queries into valid JSON tool plans.
+    Your ONLY output must be a raw JSON array, without any other text, explanations, or markdown formatting.
+
+    --- AVAILABLE TOOLS ---
+    {tools}
+    --- END TOOLS ---
+
+    --- EXAMPLE ---
+    User Query: "Find the account owner for Contoso and then list their open tickets."
+    JSON Output:
     [
         {{
-            "tool_name": "name_of_the_tool",
+            "tool_name": "search_object_by_name",
             "arguments": [
                 {{
-                    "argument_name": "name_of_the_argument",
+                    "argument_name": "name",
+                    "argument_value": ""
+                }}
+            ]
+        }},
+        {{
+            "tool_name": "works_list",
+            "arguments": [
+                {{
+                    "argument_name": "ticket.rev_org",
+                    "argument_value": ""
+                }},
+                {{
+                    "argument_name": "ticket.state",
                     "argument_value": ""
                 }}
             ]
         }}
     ]
-    ```
+    --- END EXAMPLE ---
 
-    Here is the list of available tools you can use:
-    --- START OF TOOLS ---
-    {tools}
-    --- END OF TOOLS ---
+    Now, based on the available tools and the example, process the following query.
 
     User Query: "{user_query}"
 
-    Now, generate the JSON tool chain based on the user query. Your output should only be the JSON array, with no other text or formatting.
+    CRITICAL: Your response must be only the JSON array, starting with `[` and ending with `]`.
+    JSON Output:
     """
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
@@ -63,6 +80,8 @@ def generate_tool_chain(query: str) -> str:
         "tools": formatted_tools,
         "user_query": query
     })
+    pattern = r"<think>.*?</think>"
+    response = re.sub(pattern, "", response, flags=re.DOTALL).strip()
     return response
 
 if __name__ == "__main__":

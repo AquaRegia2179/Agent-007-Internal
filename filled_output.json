@@ -1,0 +1,19 @@
+[
+    {
+        "tool_name": "works_list",
+        "arguments": [
+            {
+                "argument_name": "issue.priority",
+                "argument_value": [
+                    "p0"
+                ]
+            },
+            {
+                "argument_name": "type",
+                "argument_value": [
+                    "issue"
+                ]
+            }
+        ]
+    }
+]

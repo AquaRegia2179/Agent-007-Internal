@@ -1,6 +1,6 @@
 import os
-small_model = "gpt-oss-20b"
-large_model = "gpt-oss-20b"
+small_model = "deepseek-r1:7b"
+large_model = "deepseek-r1:7b"
 
 def loadSmallModel():
     if small_model == "gemini":
@@ -15,6 +15,9 @@ def loadSmallModel():
     elif small_model == "gpt-oss-20b":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="openai/gpt-oss-20b", groq_api_key=os.getenv("GROQ_API_KEY"))
+    elif small_model == "deepseek-r1:7b":
+        from langchain_community.chat_models import ChatOllama
+        return ChatOllama(model="deepseek-r1:7b")
 
 def loadHeavyModel():
     if large_model == "gemini":
@@ -29,3 +32,6 @@ def loadHeavyModel():
     elif large_model == "gpt-oss-20b":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="openai/gpt-oss-20b", groq_api_key=os.getenv("GROQ_API_KEY"))
+    elif large_model == "deepseek-r1:7b":
+        from langchain_community.chat_models import ChatOllama
+        return ChatOllama(model="deepseek-r1:7b")

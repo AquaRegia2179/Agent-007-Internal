@@ -1,6 +1,7 @@
 langchain
 langchain-core
 langchain-google-genai
-langchain_mistralai.chat_models
+langchain-community
+# langchain_mistralai.chat_models
 langchain-groq
 python-dotenv
