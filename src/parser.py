@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import json
 
-from tool_list.usable_tool import API_LIST
+from tool_list.usable_tool_minj import API_LIST
 
 load_dotenv()
 
@@ -22,7 +22,7 @@ def format_tool_docs(api_list: list) -> str:
     return doc_string
 
 def generate_tool_chain(query: str) -> str:
-    model = loadSmallModel()
+    model = loadSmallModel(small_model="gpt-oss20b")
     formatted_tools = format_tool_docs(API_LIST)
 
     prompt_template = """

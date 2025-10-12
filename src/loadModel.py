@@ -1,29 +1,24 @@
 import os
-small_model = "gpt-oss-120b"
-large_model = "gpt-oss-120b"
 
-def loadSmallModel():
+def loadSmallModel(small_model="gemini"):
     if small_model == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
         return ChatGoogleGenerativeAI(model='gemini-2.5-pro', temperature=0, google_api_key=os.getenv("GOOGLE_API_KEY"))
-    elif small_model == "mistral":
-        from langchain_mistralai.chat_models import ChatMistralAI
-        return ChatMistralAI(api_key=os.getenv("MISTRAL_API_KEY"), model="mistral-large-latest")
     elif small_model == "llama8b":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="llama-3.1-8b-instant", groq_api_key=os.getenv("GROQ_API_KEY"))
     elif small_model == "llamaGuard":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="meta-llama/llama-guard-4-12b", groq_api_key=os.getenv("GROQ_API_KEY"))
-    elif large_model == "gpt-oss20b":
+    elif small_model == "gpt-oss20b":
         from langchain_groq import ChatGroq
-        return ChatGroq( temperature=0, model_name="gpt-oss-20b", groq_api_key=os.getenv("GROQ_API_KEY"))
+        return ChatGroq( temperature=0, model_name="openai/gpt-oss-20b", groq_api_key=os.getenv("GROQ_API_KEY"))
     elif small_model == "gpt-oss-120b":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="openai/gpt-oss-120b", groq_api_key=os.getenv("GROQ_API_KEY"))
     
 
-def loadHeavyModel():
+def loadHeavyModel(large_model="gemini"):
     if large_model == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
         return ChatGoogleGenerativeAI(model='gemini-2.5-pro', temperature=0, google_api_key=os.getenv("GOOGLE_API_KEY"))
@@ -36,6 +31,6 @@ def loadHeavyModel():
     elif large_model == "llama70b":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="llama-3.3-70b-versatile", groq_api_key=os.getenv("GROQ_API_KEY"))
-    elif small_model == "gpt-oss-120b":
+    elif large_model == "gpt-oss-120b":
         from langchain_groq import ChatGroq
         return ChatGroq( temperature=0, model_name="openai/gpt-oss-120b", groq_api_key=os.getenv("GROQ_API_KEY"))
