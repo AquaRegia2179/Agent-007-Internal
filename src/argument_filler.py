@@ -19,10 +19,12 @@ You are a master AI assistant that analyzes a user query and a multi-step tool p
 
 CRITICAL RULES:
 - Output ONLY a JSON array.
-- If the plan is [], output [] EXACTLY (no spaces, no prose).
+- If the plan is [], output [] EXACTLY (no prose).
 - Do NOT add/remove/reorder tools or arguments.
 - Only edit "argument_value". Leave names/structure untouched.
-- Use "$$PREV[index]" when a value depends on a prior step.
+- If a value depends on a previous tool, write exactly "$$PREV[index]" (index starts at 0).
+  - NEVER use property paths with $$PREV (e.g., "$$PREV[0].task_ids" is forbidden).
+  - If you believe a field like "task_ids" is needed, still output "$$PREV[index]" only.
 - If a value is unknown, leave it as "".
 
 --- CONTEXT ---
@@ -37,6 +39,7 @@ User Query: "{user_query}"
 --- NOW FILL THE PLAN BELOW ---
 Output the fully filled JSON plan only, nothing else.
 """
+
 
 
 
