@@ -17,63 +17,28 @@ model = loadHeavyModel("llama70b")
 contextual_extraction_template = """
 You are a master AI assistant that analyzes a user query and a multi-step tool plan to determine the correct arguments for each tool.
 
-```json
+CRITICAL RULES:
+- Output ONLY a JSON array.
+- If the plan is [], output [] EXACTLY (no spaces, no prose).
+- Do NOT add/remove/reorder tools or arguments.
+- Only edit "argument_value". Leave names/structure untouched.
+- Use "$$PREV[index]" when a value depends on a prior step.
+- If a value is unknown, leave it as "".
+
 --- CONTEXT ---
 User Query: "{user_query}"
 
---- TOOL DOCUMENTATION ---
+--- TOOL DOCUMENTATION (only tools present in the plan) ---
 {tool_docs}
 
---- FULL PLAN ---
-The plan is a JSON array of steps. Each step has:
-- tool_name
-- arguments (each with argument_name and argument_value = "")
-
+--- FULL PLAN (ONLY fill argument_value fields in this structure) ---
 {plan_json}
-
---- TASK ---
-Your job is to fill in *all* argument_value fields for each step in the plan, using the user query and context.
-If a value depends on the output of a previous tool, write "$$PREV[index]" (where index is that tool's number starting from 0).
-
-- Keep the same JSON structure.
-- Only replace empty argument_value fields.
-- Do NOT add or remove tools or arguments.
-- If you cannot determine a value, leave it as "".
-
---- EXAMPLE FORMAT ---
-Input:
-[
-  {{
-    "tool_name": "search_object_by_name",
-    "arguments": [{{"argument_name": "query", "argument_value": ""}}]
-  }},
-  {{
-    "tool_name": "works_list",
-    "arguments": [
-      {{"argument_name": "ticket.rev_org", "argument_value": ""}},
-      {{"argument_name": "type", "argument_value": ""}}
-    ]
-  }}
-]
-
-Output:
-[
-  {{
-    "tool_name": "search_object_by_name",
-    "arguments": [{{"argument_name": "query", "argument_value": "Contoso"}}]
-  }},
-  {{
-    "tool_name": "works_list",
-    "arguments": [
-      {{"argument_name": "ticket.rev_org", "argument_value": "$$PREV[0]"}},
-      {{"argument_name": "type", "argument_value": ["ticket"]}}
-    ]
-  }}
-]
 
 --- NOW FILL THE PLAN BELOW ---
 Output the fully filled JSON plan only, nothing else.
 """
+
+
 
 contextual_prompt = ChatPromptTemplate.from_template(contextual_extraction_template)
 parser = StrOutputParser()
