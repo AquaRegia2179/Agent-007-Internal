@@ -22,7 +22,7 @@ def format_tool_docs(api_list: list) -> str:
     return doc_string
 
 def generate_tool_chain(query: str) -> str:
-    model = loadSmallModel(small_model="gpt-oss20b")
+    model = loadSmallModel()
     formatted_tools = format_tool_docs(API_LIST)
 
     prompt_template = """

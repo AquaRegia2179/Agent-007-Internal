@@ -1,6 +1,9 @@
 import os
 
-def loadSmallModel(small_model="gemini"):
+small_model = "gpt-oss-120b"
+large_model= "gpt-oss-120b"
+
+def loadSmallModel():
     if small_model == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
         return ChatGoogleGenerativeAI(model='gemini-2.5-pro', temperature=0, google_api_key=os.getenv("GOOGLE_API_KEY"))
@@ -18,7 +21,7 @@ def loadSmallModel(small_model="gemini"):
         return ChatGroq( temperature=0, model_name="openai/gpt-oss-120b", groq_api_key=os.getenv("GROQ_API_KEY"))
     
 
-def loadHeavyModel(large_model="gemini"):
+def loadHeavyModel():
     if large_model == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
         return ChatGoogleGenerativeAI(model='gemini-2.5-pro', temperature=0, google_api_key=os.getenv("GOOGLE_API_KEY"))

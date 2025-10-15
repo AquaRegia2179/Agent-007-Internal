@@ -11,7 +11,7 @@ from .tool_list.usable_tool import API_LIST
 load_dotenv()
 
 # --- Load heavy model once ---
-model = loadHeavyModel("llama70b")
+model = loadHeavyModel()
 
 # --- Template for SINGLE CALL ---
 contextual_extraction_template = """
