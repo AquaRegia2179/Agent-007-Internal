@@ -1,11 +1,11 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
+from loadModel import loadSmallModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 import os
 import json
 
-from tools import API_LIST
+from tool_list.usable_tool_minj import API_LIST
 
 load_dotenv()
 
@@ -22,7 +22,7 @@ def format_tool_docs(api_list: list) -> str:
     return doc_string
 
 def generate_tool_chain(query: str) -> str:
-    model = ChatGoogleGenerativeAI(model='gemini-2.5-pro', temperature=0)
+    model = loadSmallModel(small_model="gpt-oss20b")
     formatted_tools = format_tool_docs(API_LIST)
 
     prompt_template = """
