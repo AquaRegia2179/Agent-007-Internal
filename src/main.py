@@ -3,8 +3,8 @@ import json
 from dotenv import load_dotenv
 
 # Import the high-level functions from your other modules
-from parser import generate_tool_chain
-from argument_filler import fill_arguments_with_context
+from .parser import generate_tool_chain
+from .argument_filler import fill_arguments_with_context
 
 # Load environment variables from your .env file
 load_dotenv()

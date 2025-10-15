@@ -1,11 +1,11 @@
-from loadModel import loadSmallModel
+from .loadModel import loadSmallModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 import os
 import json
 
-from tool_list.usable_tool_minj import API_LIST
+from .tool_list.usable_tool_minj import API_LIST
 
 load_dotenv()
 
