@@ -26,23 +26,17 @@ Respond with "NO" followed by a concise, one-sentence explanation if the plan is
     return prompt
 
 def verify_plan(filled_plan, user_query, llm_instance):
-    """
-    Checks if the generated plan is a hallucination or incorrect using a LangChain model.
-
-    Args:
-        filled_plan (dict): The final plan with all arguments filled.
-        user_query (str): The original query from the user.
-        llm_instance: An instantiated LangChain chat model.
-
-    Returns:
-        tuple[bool, str]: A tuple containing a boolean (True if valid, False if not)
-                           and a message string.
-    """
+    
     print("\nVerifying the plan against the user query...")
     verification_prompt = get_verification_prompt(filled_plan, user_query)
 
     try:
-        # Use the passed-in LangChain model instance
+        json.dumps(filled_plan)
+    except (TypeError, ValueError) as e:
+        print(f"Plan is not a valid JSON object: {e}")
+        return False, "Plan rejected. Reason: The generated plan is not a valid JSON object."
+
+    try:
         response = llm_instance.invoke(verification_prompt)
         llm_response = response.content.strip()
 
@@ -51,11 +45,9 @@ def verify_plan(filled_plan, user_query, llm_instance):
         if llm_response.upper().startswith("YES"):
             return True, "Plan verified successfully."
         elif llm_response.upper().startswith("NO"):
-            # Extract the reason after the "NO"
             reason = llm_response[2:].strip(": ").strip()
             return False, f"Plan rejected. Reason: {reason}"
         else:
-            # Handle cases where the model doesn't follow instructions
             return False, f"Verifier response was not in the expected 'YES' or 'NO' format. Full response: {llm_response}"
 
     except Exception as e:
