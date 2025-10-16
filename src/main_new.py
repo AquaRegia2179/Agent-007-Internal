@@ -40,7 +40,7 @@ def main():
     filled_plan = fill_arguments_with_context(plan, query)
 
     verifier_model  = loadHeavyModel()
-    tries = 4
+    tries = 3
     for i in range(tries):
         flag , err = verify_plan(filled_plan, query, verifier_model)
         if not flag:
