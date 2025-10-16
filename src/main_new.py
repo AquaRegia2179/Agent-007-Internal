@@ -1,8 +1,9 @@
-# main.py
 import json
 from dotenv import load_dotenv
 from parser import generate_tool_chain
 from argument_filler import fill_arguments_with_context
+from hallucination_check import verify_plan
+from loadModel import loadHeavyModel
 
 def clean_json_output(output: str) -> str:
     cleaned = output.strip()
@@ -31,7 +32,6 @@ def main():
         print(raw_output)
         return
 
-    # Save skeleton plan for reference
     with open("output.json", "w") as f:
         json.dump(plan, f, indent=4)
     print("Parsed skeleton plan and saved to output.json")
@@ -39,7 +39,15 @@ def main():
     print("\n[2/2] Filling argument values with argument_filler.py...")
     filled_plan = fill_arguments_with_context(plan, query)
 
-    # Save final filled plan
+    verifier_model  = loadHeavyModel()
+    tries = 4
+    for i in range(tries):
+        flag , err = verify_plan(filled_plan, query, verifier_model)
+        if not flag:
+            print("Reprompting\n")
+            filled_plan = fill_arguments_with_context(plan, query, err)
+
+
     final_path = "final_output.json"
     with open(final_path, "w") as f:
         json.dump(filled_plan, f, indent=4)

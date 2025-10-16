@@ -1,12 +1,12 @@
 import json
 import time
-from .loadModel import loadSmallModel, loadHeavyModel
+from loadModel import loadSmallModel, loadHeavyModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 import os
 
-from .tool_list.usable_tool_minj import API_LIST
+from tool_list.usable_tool import API_LIST
 
 load_dotenv()
 
@@ -29,6 +29,8 @@ CRITICAL RULES:
 
 --- CONTEXT ---
 User Query: "{user_query}"
+
+{error_context}
 
 --- TOOL DOCUMENTATION (only tools present in the plan) ---
 {tool_docs}
@@ -62,13 +64,17 @@ def format_tool_docs(api_list: list) -> str:
 
 
 # --- Core Logic ---
-def fill_arguments_with_context(plan: list, user_query: str) -> list:
+def fill_arguments_with_context(plan: list, user_query: str, err_response:str = "") -> list:
     tool_docs = format_tool_docs(API_LIST)
     plan_json = json.dumps(plan, indent=4)
+    error_context = ""
+    if err_response != "":
+        error_context += f"The following is the error response from the previous prompt, where you hallucinated, ensure this does not happen : {err_response}"
 
     print("Sending single LLM request to fill all arguments...")
     response_str = contextual_extraction_chain.invoke({
         "user_query": user_query,
+        "error_context": error_context,
         "tool_docs": tool_docs,
         "plan_json": plan_json
     })
