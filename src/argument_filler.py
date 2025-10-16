@@ -1,12 +1,12 @@
 import json
 import time
-from loadModel import loadSmallModel, loadHeavyModel
+from .loadModel import loadSmallModel, loadHeavyModel
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 import os
 
-from tool_list.usable_tool import API_LIST
+from .tool_list.usable_tool_minj import API_LIST
 
 load_dotenv()
 

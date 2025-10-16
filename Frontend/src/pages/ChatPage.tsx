@@ -33,10 +33,10 @@ export default function ChatPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white">
       <Navbar onClearChat={clearChat} />
 
-      <div className="container p-6">
+      <div className="container p-6 flex flex-col mx-auto">
         <button
           onClick={() => navigate('/')}
-          className="mb-4 bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          className="mb-4 bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors w-fit"
         >
           ← Back to Home
         </button>

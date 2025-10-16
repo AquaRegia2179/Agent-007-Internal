@@ -5,6 +5,12 @@ from ...parser import generate_tool_chain
 from ...argument_filler import fill_arguments_with_context
 import os
 
+def clean_json_output(output: str) -> str:
+    cleaned = output.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+    return cleaned
+    
 @app.route('/', methods=['GET', 'POST'])
 def home():
     return jsonify({ "message": "API is live!" })
@@ -12,11 +18,10 @@ def home():
 @app.route('/respond', methods=['POST'])
 def respond():
     user_query = request.json.get('query', '')
-    skeleton_plan_str = generate_tool_chain(user_query)
-    if skeleton_plan_str.startswith("```json"):
-        skeleton_plan_str = skeleton_plan_str.strip("```json").strip()
-    skeleton_plan_obj = json.loads(skeleton_plan_str)
-    filled_plan = fill_arguments_with_context(skeleton_plan_obj, user_query)
+    raw_output = generate_tool_chain(user_query)
+    json_string_output = clean_json_output(raw_output)
+    plan = json.loads(json_string_output)
+    filled_plan = fill_arguments_with_context(plan, user_query)
 
     response = jsonify({ "reply":  filled_plan})
 

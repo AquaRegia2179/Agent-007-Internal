@@ -36,7 +36,7 @@ export const useChat = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          query: messages.length > 0 ? messages : userMessage.content
+          query: messages.length > 0 ? {...messages, userMessage} : userMessage.content
         }),
         credentials: 'include',
       });

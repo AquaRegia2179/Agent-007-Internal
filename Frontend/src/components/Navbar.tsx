@@ -11,7 +11,7 @@ export default function Navbar({ onClearChat }: NavbarProps) {
   return (
     <nav className="bg-gray-900 border-b border-gray-700 px-6 py-4">
       <div className="container mx-auto flex items-center justify-between">
-        <Link to="/chat" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <img src="/Logo.png" alt="AI Agent 007 Logo" className="w-10 h-10" />
           <h1 className="text-2xl font-bold text-yellow-400">
             AI Agent 007
