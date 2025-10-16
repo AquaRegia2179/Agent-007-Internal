@@ -1,9 +1,9 @@
 import json
 from dotenv import load_dotenv
-from parser import generate_tool_chain
-from argument_filler import fill_arguments_with_context
-from hallucination_check import verify_plan
-from loadModel import loadHeavyModel
+from .parser import generate_tool_chain
+from .argument_filler import fill_arguments_with_context
+from .hallucination_check import verify_plan
+from .loadModel import loadHeavyModel
 
 def clean_json_output(output: str) -> str:
     cleaned = output.strip()
